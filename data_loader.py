@@ -7,6 +7,31 @@ import os
 
 import pandas as pd
 
+import logging
+import ssl
+import urllib.request
+
+logger = logging.getLogger(__name__)
+
+ISP_URL = "https://www.ispdados.rj.gov.br/Arquivos/BaseMunicipioMensal.csv"
+
+
+def garantir_dados_isp(path: str = "data/BaseMunicipioMensal.csv") -> str:
+    """Baixa o CSV do ISP se ainda não existir (necessário no deploy)."""
+    if os.path.exists(path) and os.path.getsize(path) > 1000:
+        return path
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    try:
+        req = urllib.request.Request(ISP_URL, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, context=ssl.create_default_context(), timeout=90) as resp:
+            conteudo = resp.read()
+        with open(path, "wb") as f:
+            f.write(conteudo)
+        logger.info("Dados do ISP baixados: %d bytes", len(conteudo))
+    except Exception as e:
+        logger.warning("Não consegui baixar o CSV do ISP: %s", e)
+    return path
+
 logger = logging.getLogger(__name__)
 
 COLUNAS = ["id", "data", "ano", "mes", "dia_semana", "hora",

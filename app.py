@@ -15,6 +15,10 @@ st.set_page_config(page_title="Risco de Roubo de Carga — RJ", layout="wide")
 MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
          "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
+@st.cache_data
+def carregar() -> pd.DataFrame:
+    data_loader.garantir_dados_isp()   # baixa o CSV se não existir (deploy)
+    return data_loader.load_isp_municipio()
 
 @st.cache_data
 def carregar() -> pd.DataFrame:
