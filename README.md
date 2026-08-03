@@ -1,4 +1,4 @@
-# 🚚 Mapa de Risco de Roubo de Carga — RJ
+# Mapa de Risco de Roubo de Carga — RJ
 
 Dashboard interativo em Python que usa os **dados abertos do ISP-RJ** (Instituto de
 Segurança Pública do Rio de Janeiro) para mapear onde o roubo de carga se concentra no
@@ -12,7 +12,7 @@ estado, por município, ano e mês.
 <!-- Depois de rodar, adicione um print: salve em docs/screenshot.png e descomente a linha abaixo -->
 <!-- ![Dashboard](docs/screenshot.png) -->
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 - Mapa de calor das ocorrências de roubo de carga na Região Metropolitana e no estado.
 - Filtros por **ano** (2014 em diante) e **mês**.
@@ -20,21 +20,21 @@ estado, por município, ano e mês.
 - Gráfico de sazonalidade mensal.
 - Exportação do recorte filtrado em CSV.
 
-## 🛠️ Stack
+## Stack
 
 Python · pandas · Streamlit · Folium · Plotly · pytest
 
-## 📊 Fonte dos dados
+## Fonte dos dados
 
 Base oficial e pública do ISP-RJ — `BaseMunicipioMensal.csv` (mensal, por município),
 com a coluna `roubo_carga`. Série histórica a partir de **janeiro de 2014**, atualizada
 mensalmente.
 
-> ⚠️ Os dados públicos são **mensais e por município** — não contêm hora nem dia da
+> Os dados públicos são **mensais e por município** — não contêm hora nem dia da
 > semana. Por isso o dashboard filtra por ano e mês. Para análise por hora/dia seria
 > necessária uma base própria (transportadora/seguradora) com data-hora e coordenadas.
 
-## 🚀 Como rodar
+## Como rodar
 
 Pré-requisitos: Python 3.11+ instalado.
 
@@ -75,7 +75,7 @@ streamlit run app.py
 
 Abre em <http://localhost:8501>.
 
-## 🧪 Testes
+## Testes
 
 ```bash
 pip install pytest
@@ -85,7 +85,7 @@ pytest
 Os testes usam um CSV sintético (não dependem do download), validando o esquema de
 colunas, valores válidos, filtragem de municípios e tratamento de erros.
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 mapa-risco-carga-rj/
@@ -100,17 +100,17 @@ mapa-risco-carga-rj/
     └── test_data_loader.py
 ```
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] Dashboard com dados reais do ISP (mensal por município)
 - [x] Filtro por ano e mês
 - [x] Testes automatizados
-- [ ] Traçado das rodovias com geometria real (OSMnx)
-- [ ] Camada de base própria com hora/dia
-- [ ] Motor de rotas que evita zonas de maior risco
-- [ ] Deploy no Streamlit Cloud
+- [x] Traçado das rodovias com geometria real (OSMnx)
+- [x] Camada de base própria com hora/dia
+- [x] Motor de rotas que evita zonas de maior risco
+- [x] Deploy no Streamlit Cloud
 
-## ⚖️ Limitações e uso responsável
+## Limitações e uso responsável
 
 Ferramenta de apoio à decisão logística. Os números refletem **ocorrências registradas**,
 sujeitas a subnotificação; a composição do indicador "roubo de carga" mudou em 2009. O
@@ -118,13 +118,13 @@ mapa não substitui inteligência de segurança oficial e não deve ser usado pa
 estigmatizar territórios. Se integrar dados pessoais (ex.: base de transportadora),
 respeite a LGPD.
 
-## 📚 Fontes
+## Fontes
 
 - [ISP Dados Abertos](https://www.ispdados.rj.gov.br/)
 - [Base mensal por município](https://www.ispdados.rj.gov.br/Arquivos/BaseMunicipioMensal.csv)
 - [Divisão territorial (CISP)](https://www.ispdados.rj.gov.br/divisaoTerritorial.html)
 
-## 📄 Licença
+## Licença
 
 MIT — sinta-se livre para usar e adaptar, citando a fonte dos dados (ISP-RJ).
 #
