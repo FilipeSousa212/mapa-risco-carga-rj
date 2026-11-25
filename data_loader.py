@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import logging
 import os
-
-import pandas as pd
-
-import logging
 import ssl
 import urllib.request
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,6 @@ def garantir_dados_isp(path: str = "data/BaseMunicipioMensal.csv") -> str:
         logger.warning("Não consegui baixar o CSV do ISP: %s", e)
     return path
 
-logger = logging.getLogger(__name__)
 
 COLUNAS = ["id", "data", "ano", "mes", "dia_semana", "hora",
            "lat", "lon", "municipio", "corredor", "qtd", "fonte"]

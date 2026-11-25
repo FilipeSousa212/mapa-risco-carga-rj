@@ -1,6 +1,8 @@
-streamlit>=1.30
-streamlit-folium>=0.20
-folium>=0.15
-pandas>=2.0
-numpy>=1.24
-plotly>=5.18
+# Faixas com teto no próximo major: um redeploy que puxasse um major novo
+# em silêncio foi o que quebrou o mapa (folium 1.x + CartoDB exigindo API key).
+streamlit>=1.49,<2
+streamlit-folium>=0.25,<1
+folium>=0.15,<2
+pandas>=2.0,<4
+numpy>=1.24,<3
+plotly>=5.18,<8

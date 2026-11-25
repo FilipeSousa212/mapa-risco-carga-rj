@@ -20,9 +20,27 @@ def carregar() -> pd.DataFrame:
     data_loader.garantir_dados_isp()   # baixa o CSV se não existir (deploy)
     return data_loader.load_isp_municipio()
 
-@st.cache_data
-def carregar() -> pd.DataFrame:
-    return data_loader.load_isp_municipio()
+
+def criar_mapa() -> folium.Map:
+    """Mapa base sem dependência de API key.
+
+    O CartoDB Positron passou a exigir chave: sem ela o xyzservices descarta o
+    parâmetro `?key=`, o Carto rejeita os tiles e o mapa fica cinza. Usamos o
+    OpenStreetMap por padrão e só voltamos ao Positron se houver chave em
+    `st.secrets["carto_apikey"]`.
+    """
+    centro, zoom = [-22.85, -43.35], 9
+    try:
+        chave = st.secrets["carto_apikey"]
+    except Exception:
+        chave = None
+    if chave:
+        return folium.Map(
+            location=centro, zoom_start=zoom,
+            tiles=f"https://a.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}.png?key={chave}",
+            attr="© OpenStreetMap contributors © CARTO",
+        )
+    return folium.Map(location=centro, zoom_start=zoom, tiles="OpenStreetMap")
 
 
 st.title("🚚 Mapa de risco de roubo de carga — Rio de Janeiro")
@@ -59,10 +77,14 @@ st.caption("Fonte: ISP-RJ (oficial, mensal por município). Marcadores no centro
 col_mapa, col_graf = st.columns([3, 2])
 with col_mapa:
     st.subheader("Mapa")
-    m = folium.Map(location=[-22.85, -43.35], zoom_start=9, tiles="cartodbpositron")
+    m = criar_mapa()
     if camada == "Mapa de calor":
         heat = f.groupby(["lat", "lon"])["qtd"].sum().reset_index()
-        HeatMap(heat[["lat", "lon", "qtd"]].values.tolist(), radius=22, blur=28).add_to(m)
+        # O leaflet-heat normaliza os pesos por `max` (padrão 1.0): sem dividir
+        # pelo máximo todo ponto satura no vermelho e o mapa não distingue nada.
+        heat["peso"] = heat["qtd"] / heat["qtd"].max()
+        HeatMap(heat[["lat", "lon", "peso"]].values.tolist(),
+                radius=22, blur=28, min_opacity=0.3).add_to(m)
     else:
         cluster = MarkerCluster().add_to(m)
         agg = f.groupby(["lat", "lon", "municipio"])["qtd"].sum().reset_index()
@@ -79,14 +101,14 @@ with col_graf:
     fig = px.bar(top, x="Ocorrências", y="Município", orientation="h")
     fig.update_layout(yaxis={"categoryorder": "total ascending"}, height=320,
                       margin=dict(l=0, r=0, t=10, b=0))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.subheader("Sazonalidade mensal")
     porm = f.groupby("mes")["qtd"].sum().reindex(range(1, 13)).fillna(0).reset_index()
     porm["mes"] = porm["mes"].map(lambda x: MESES[int(x) - 1])
     figm = px.bar(porm, x="mes", y="qtd", labels={"mes": "", "qtd": "Ocorrências"})
     figm.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
-    st.plotly_chart(figm, use_container_width=True)
+    st.plotly_chart(figm, width="stretch")
 
 st.download_button("⬇️ Baixar recorte (CSV)",
                    data=f.to_csv(index=False).encode("utf-8"),
