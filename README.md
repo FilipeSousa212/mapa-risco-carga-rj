@@ -73,7 +73,7 @@ Ou baixe manualmente em
 streamlit run app.py
 ```
 
-Abre em <http://localhost:8501>.
+Abre em https://mapaderiscorj.streamlit.app/
 
 ## Testes
 
