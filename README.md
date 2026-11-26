@@ -97,7 +97,7 @@ python scripts/gerar_referencia_municipios.py
 streamlit run app.py
 ```
 
-Abre em https://mapaderiscorj.streamlit.app/
+Abre em https://mapa-risco-carga-rj.streamlit.app/
 
 ## Testes
 
