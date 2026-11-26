@@ -9,6 +9,8 @@ __pycache__/
 .streamlit/secrets.toml
 data/*
 !data/BaseMunicipioMensal.csv
+!data/malha_municipios_rj.json
+!data/municipios_rj.csv
 .vscode/
 .idea/
 .DS_Store
