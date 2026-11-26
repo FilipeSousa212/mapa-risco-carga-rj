@@ -6,8 +6,8 @@ import folium
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import streamlit.components.v1 as components
 from folium.plugins import HeatMap, MarkerCluster
-from streamlit_folium import st_folium
 
 import data_loader
 
@@ -17,12 +17,10 @@ MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
 
 @st.cache_data
 def carregar() -> pd.DataFrame:
-    data_loader.garantir_dados_isp()   # baixa o CSV se não existir (deploy)
-    return data_loader.load_isp_municipio()
-
-@st.cache_data
-def carregar() -> pd.DataFrame:
-    return data_loader.load_isp_municipio()
+    # garantir_dados_isp devolve o caminho; repassá-lo evita que os dois
+    # defaults divirjam se um dia mudar só um deles.
+    caminho = data_loader.garantir_dados_isp()   # baixa o CSV se não existir (deploy)
+    return data_loader.load_isp_municipio(caminho)
 
 
 st.title("🚚 Mapa de risco de roubo de carga — Rio de Janeiro")
@@ -59,10 +57,21 @@ st.caption("Fonte: ISP-RJ (oficial, mensal por município). Marcadores no centro
 col_mapa, col_graf = st.columns([3, 2])
 with col_mapa:
     st.subheader("Mapa")
-    m = folium.Map(location=[-22.85, -43.35], zoom_start=9, tiles="cartodbpositron")
+    # Basemap sem chave de API. Os dois provedores óbvios não servem:
+    # a Carto passou a exigir API key (devolve um tile "API KEY REQUIRED"),
+    # e o OSM responde 403 "not following the tile usage policy" para uso
+    # embutido em aplicação, por rodar em servidores voluntários.
+    # A Esri serve por CDN comercial, sem chave; a atribuição é obrigatória
+    # e o folium já a insere no rodapé do mapa.
+    m = folium.Map(location=[-22.85, -43.35], zoom_start=9,
+                   tiles="Esri.WorldGrayCanvas")
     if camada == "Mapa de calor":
         heat = f.groupby(["lat", "lon"])["qtd"].sum().reset_index()
-        HeatMap(heat[["lat", "lon", "qtd"]].values.tolist(), radius=22, blur=28).add_to(m)
+        # leaflet.heat usa max=1.0 por padrao: sem normalizar, 1 e 1496 pintam igual.
+        # A raiz quadrada impede que o Rio de Janeiro achate todos os demais.
+        heat["peso"] = (heat["qtd"] / heat["qtd"].max()) ** 0.5
+        HeatMap(heat[["lat", "lon", "peso"]].values.tolist(),
+                radius=22, blur=28, max=1.0).add_to(m)
     else:
         cluster = MarkerCluster().add_to(m)
         agg = f.groupby(["lat", "lon", "municipio"])["qtd"].sum().reset_index()
@@ -70,7 +79,12 @@ with col_mapa:
             folium.CircleMarker([r["lat"], r["lon"]], radius=5, color="crimson",
                                 fill=True, fill_opacity=0.7,
                                 popup=f"{r['municipio']}: {int(r['qtd'])}").add_to(cluster)
-    st_folium(m, height=520, use_container_width=True)
+    # components.html embute o HTML via srcdoc. O st_folium faria um
+    # GET /component/... extra, que depende do servidor estar acessível a
+    # partir do iframe — frágil atrás de proxy (Codespaces, por exemplo).
+    # O retorno do st_folium não era usado, então a troca não perde nada
+    # e remove uma dependência.
+    components.html(m.get_root().render(), height=520, scrolling=False)
 
 with col_graf:
     st.subheader("Municípios mais perigosos")
@@ -79,14 +93,14 @@ with col_graf:
     fig = px.bar(top, x="Ocorrências", y="Município", orientation="h")
     fig.update_layout(yaxis={"categoryorder": "total ascending"}, height=320,
                       margin=dict(l=0, r=0, t=10, b=0))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig)
 
     st.subheader("Sazonalidade mensal")
     porm = f.groupby("mes")["qtd"].sum().reindex(range(1, 13)).fillna(0).reset_index()
     porm["mes"] = porm["mes"].map(lambda x: MESES[int(x) - 1])
     figm = px.bar(porm, x="mes", y="qtd", labels={"mes": "", "qtd": "Ocorrências"})
     figm.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
-    st.plotly_chart(figm, use_container_width=True)
+    st.plotly_chart(figm)
 
 st.download_button("⬇️ Baixar recorte (CSV)",
                    data=f.to_csv(index=False).encode("utf-8"),
